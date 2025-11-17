@@ -1,0 +1,12 @@
+# Ficheiros de Segredos e Configuração
+.env
+
+# Pasta de dependências do Node.js
+/node_modules
+
+# Ficheiros de upload dos utilizadores
+/uploads
+
+# Ficheiros de log e temporários
+*.log
+npm-debug.log*

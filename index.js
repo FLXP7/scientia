@@ -1,10 +1,3 @@
-/*
- * ========================================
- * SERVIDOR PRINCIPAL DA PLATAFORMA SCIENTIA
- * ========================================
- */
-
-// --- 1. IMPORTAÇÕES DE PACOTES ---
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -12,21 +5,14 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
-
-// --- 2. IMPORTAÇÕES LOCAIS ---
-const pool = require('./db'); // A nossa ligação ao MySQL
-const authMiddleware = require('./authMiddleware'); // O nosso "porteiro" de segurança
-
-// --- 3. INICIALIZAÇÃO DO APP ---
+const pool = require('./db'); 
+const authMiddleware = require('./authMiddleware'); 
 const app = express();
 const PORTA = process.env.PORTA_API || 3000;
 
-// --- 4. MIDDLEWARES GLOBAIS ---
-// Ensinar o Express a "ler" JSON e a permitir pedidos de outros domínios (CORS)
 app.use(cors());
 app.use(express.json());
 
-// --- 5. CONFIGURAÇÃO DO MULTER (UPLOADS) ---
 // Define onde os ficheiros vão ser guardados
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -40,11 +26,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- 6. ROTAS DA API ---
-
-/* --- ROTAS DE AUTENTICAÇÃO (Módulo 1) --- */
-
-// ROTA: POST /api/usuarios/registrar
 app.post('/api/usuarios/registrar', async (req, res) => {
     try {
         const { nome, afiliacao, area_especializacao, biografia, email, senha } = req.body;
@@ -68,7 +49,6 @@ app.post('/api/usuarios/registrar', async (req, res) => {
     }
 });
 
-// ROTA: POST /api/usuarios/login
 app.post('/api/usuarios/login', async (req, res) => {
     try {
         const { email, senha } = req.body;
@@ -95,9 +75,6 @@ app.post('/api/usuarios/login', async (req, res) => {
         res.status(500).json({ mensagem: 'Erro interno no servidor.' });
     }
 });
-
-
-/* --- ROTAS DE DATASETS (Módulos 2 & 3) --- */
 
 // ROTA: POST /api/datasets/upload (Protegida)
 app.post('/api/datasets/upload', authMiddleware, upload.single('datasetFile'), async (req, res) => {
@@ -212,9 +189,7 @@ app.get('/api/datasets/download/:id', authMiddleware, async (req, res) => {
 });
 
 
-/* --- ROTAS DE COMENTÁRIOS (Módulo 4) --- */
 
-// ROTA: POST /api/datasets/:id/comentarios (Protegida)
 app.post('/api/datasets/:id/comentarios', authMiddleware, async (req, res) => {
     try {
         const { id: datasetId } = req.params;
@@ -243,7 +218,6 @@ app.post('/api/datasets/:id/comentarios', authMiddleware, async (req, res) => {
     }
 });
 
-// ROTA: GET /api/datasets/:id/comentarios (Listar)
 app.get('/api/datasets/:id/comentarios', async (req, res) => {
     try {
         const { id: datasetId } = req.params;
@@ -263,7 +237,6 @@ app.get('/api/datasets/:id/comentarios', async (req, res) => {
 });
 
 
-// --- 7. INICIAR O SERVIDOR ---
 app.listen(PORTA, () => {
     console.log(`Servidor "Scientia" a rodar na porta ${PORTA}`);
 });

@@ -27,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
 
             if (response.ok) { // Status 200
-                // SUCESSO! Onde guardamos o passaporte?
                 // O localStorage é um "cofre" do navegador.
                 localStorage.setItem('scientia_token', result.token);
 

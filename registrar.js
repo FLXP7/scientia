@@ -1,10 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('register-form');
     const messageContainer = document.getElementById('message-container');
-    const API_URL = 'http://localhost:3000'; // O teu URL do back-end
+    const API_URL = 'http://localhost:3000';
 
     registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Impede o recarregamento da página
+        e.preventDefault(); 
 
         // Limpa mensagens antigas
         messageContainer.textContent = '';
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(registerForm);
         const data = Object.fromEntries(formData.entries());
 
-        // Validação básica da senha (podes melhorar isto)
+        // Validação básica da senha
         if (data.senha.length < 6) {
             mostrarMensagem('A senha deve ter pelo menos 6 caracteres.', 'error');
             return;

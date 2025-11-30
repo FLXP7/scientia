@@ -3,8 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const messageContainer = document.getElementById('message-container');
     const API_URL = 'http://localhost:3000';
 
-    // 1. Verificação de Segurança (Cliente)
-    // O utilizador está logado? Se não, não devia estar aqui.
     const token = localStorage.getItem('scientia_token');
     if (!token) {
         // Redireciona para o login se não houver token
@@ -18,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messageContainer.textContent = '';
         messageContainer.className = 'message';
         
-        // 2. Obter os dados do formulário
+        // Obter os dados do formulário
         const titulo = document.getElementById('titulo').value;
         const descricao = document.getElementById('descricao').value;
         const fileInput = document.getElementById('datasetFile');
@@ -29,8 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 3. Usar 'FormData' (Obrigatório para enviar ficheiros!)
-        // Não podemos usar JSON.stringify aqui.
         const formData = new FormData();
         formData.append('titulo', titulo);
         formData.append('descricao', descricao);
@@ -42,11 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${API_URL}/api/datasets/upload`, {
                 method: 'POST',
                 headers: {
-                    // 4. Enviar o nosso "passaporte" (Token JWT)
-                    // O 'authMiddleware' no back-end vai procurar por isto!
                     'Authorization': `Bearer ${token}`
-                    // Nota: NÃO definas 'Content-Type' aqui. O 'fetch'
-                    // com 'FormData' trata disso automaticamente (boundary, etc.)
                 },
                 body: formData // Envia o formulário
             });

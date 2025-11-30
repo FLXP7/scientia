@@ -102,3 +102,10 @@
     color: var(--cor-texto-secundario);
     font-size: 0.9rem;
 }
+.btn-bloqueado {
+    background-color: #95a5a6 !important; /* Cinza */
+    cursor: not-allowed;
+}
+.btn-bloqueado:hover {
+    background-color: #7f8c8d !important;
+}

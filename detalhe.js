@@ -1,57 +1,54 @@
-/*
- * ========================================
- * SCRIPT DA PÁGINA DE DETALHE (detalhe.html)
- * ========================================
- */
-
-// Espera que o HTML esteja pronto
 document.addEventListener('DOMContentLoaded', () => {
-
-    // --- 1. SELETORES DO DOM & ESTADO GLOBAL ---
-    // Apanhamos todos os elementos HTML e variáveis que vamos usar
     const detalheContainer = document.getElementById('detalhe-container');
     const commentForm = document.getElementById('comment-form');
     const commentLoginNotice = document.getElementById('comment-login-notice');
     const commentListContainer = document.getElementById('comment-list');
     const commentTextarea = commentForm.querySelector('textarea');
-    
     const API_URL = 'http://localhost:3000';
-    
-    // Apanha o ID do dataset do URL (ex: ...?id=3)
     const urlParams = new URLSearchParams(window.location.search);
     const datasetId = urlParams.get('id');
-    
-    // Apanha o token do utilizador (se existir)
     const token = localStorage.getItem('scientia_token');
-
-    
-    // --- 2. FUNÇÃO DE INICIALIZAÇÃO ---
-    // Esta é a função principal que corre quando a página abre
-    
+  
     function init() {
         if (!datasetId) {
             detalheContainer.innerHTML = '<h1>Erro</h1><p>Nenhum ID de dataset fornecido. <a href="index.html">Voltar</a>.</p>';
             return;
         }
 
-        // 1. Configura a UI de comentários (mostra/esconde formulário)
+        // 1. Configura a UI (Esconde comentários se não estiver logado)
         setupComentariosUI();
 
-        // 2. Busca os dados do dataset e os comentários
+        // 2. Busca os detalhes do dataset (Isto corre SEMPRE)
         fetchDetalhesDataset();
-        fetchComentarios();
 
         // 3. "Ouve" pelo envio do formulário de comentário
         commentForm.addEventListener('submit', handleCommentSubmit);
     }
 
-    
-    // --- 3. FUNÇÕES DE API (FETCH) ---
-    // Funções que falam com o back-end
+    /* Define a visibilidade da secção de comentários. */
+    function setupComentariosUI() {
+        // Seleciona a secção INTEIRA dos comentários
+        const seccaoComentarios = document.getElementById('comentarios-container');
 
-    /**
-     * Busca os detalhes do dataset (título, descrição, autor).
-     */
+        if (token) {
+            // --- UTILIZADOR LOGADO ---
+            // Mostra a secção
+            seccaoComentarios.style.display = 'block';
+            
+            // Mostra o formulário de escrita
+            commentForm.style.display = 'block';
+            commentLoginNotice.style.display = 'none';
+            
+            // Carrega a lista de comentários do servidor
+            fetchComentarios(); 
+        } else {
+            // --- VISITANTE (NÃO LOGADO) ---
+            // Esconde a secção INTEIRA (Título, Lista e Formulário)
+            seccaoComentarios.style.display = 'none';
+        }
+    }
+
+    /* Busca os detalhes do dataset (título, descrição, autor). */
     async function fetchDetalhesDataset() {
         try {
             const response = await fetch(`${API_URL}/api/datasets/${datasetId}`);
@@ -67,9 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Busca a lista de comentários para este dataset.
-     */
+    /* Busca a lista de comentários para este dataset. */
     async function fetchComentarios() {
         try {
             const response = await fetch(`${API_URL}/api/datasets/${datasetId}/comentarios`);
@@ -83,13 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    
-    // --- 4. FUNÇÕES DE "HANDLER" (EVENTOS) ---
-    // Funções que são chamadas por uma ação do utilizador (clique, envio)
-
-    /**
-     * Chamado quando o formulário de comentário é enviado.
-     */
+    /* Chamado quando o formulário de comentário é enviado. */
     async function handleCommentSubmit(e) {
         e.preventDefault();
         const texto = commentTextarea.value.trim();
@@ -131,9 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Chamado quando o utilizador clica em "Fazer Download".
-     */
+    /* Chamado quando o utilizador clica em "Fazer Download". */
     async function handleDownloadClick(e) {
         e.preventDefault();
         
@@ -166,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (filenameMatch && filenameMatch[1]) filename = filenameMatch[1];
             }
 
-            // Cria um link <a> invisível para forçar o download
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
@@ -174,9 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
             a.download = filename;
             document.body.appendChild(a);
             
-            a.click(); // "Clica" no link
+            a.click(); 
             
-            // Limpa o link da memória
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
 
@@ -187,15 +172,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     
-    // --- 5. FUNÇÕES DE RENDERIZAÇÃO (UI) ---
-    // Funções que "desenham" o HTML na página
-    
-    /**
-     * "Desenha" os detalhes do dataset no topo da página.
-     */
+
     function renderizarDetalhes(dataset) {
         const dataFormatada = new Date(dataset.data_upload).toLocaleDateString('pt-BR');
+        const usuarioLogado = localStorage.getItem('scientia_token');
+
+        let textoBotao = `Fazer Download (${dataset.nome_arquivo})`;
+        let classeBotao = "btn-download";
         
+        if (!usuarioLogado) {
+            textoBotao = "🔒 Faça Login para Baixar";
+            classeBotao = "btn-download btn-bloqueado"; 
+        }
+
         detalheContainer.innerHTML = `
             <h1>${dataset.titulo}</h1>
             <p class="meta-info">
@@ -205,18 +194,25 @@ document.addEventListener('DOMContentLoaded', () => {
             <p class="dataset-descricao">
                 ${dataset.descricao.replace(/\n/g, '<br>')}
             </p>
-            <a href="#" id="download-button" class="btn-download">
-                Fazer Download (${dataset.nome_arquivo})
+            
+            <a href="#" id="download-button" class="${classeBotao}">
+                ${textoBotao}
             </a>
         `;
 
-        // Agora que o botão existe, liga o "ouvinte" de clique nele
-        document.getElementById('download-button').addEventListener('click', handleDownloadClick);
+        document.getElementById('download-button').addEventListener('click', (e) => {
+            if (!usuarioLogado) {
+                e.preventDefault();
+                // Se não estiver logado, manda para o login
+                alert("Para baixar este ficheiro, precisas de entrar na tua conta.");
+                window.location.href = `login.html?redirect=detalhe.html?id=${dataset.id}`;
+            } else {
+                // Se estiver logado, executa a função de download original
+                handleDownloadClick(e);
+            }
+        });
     }
 
-    /**
-     * "Desenha" a lista inteira de comentários.
-     */
     function renderizarComentarios(comentarios) {
         commentListContainer.innerHTML = ''; // Limpa a lista
         if (comentarios.length === 0) {
@@ -226,11 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         comentarios.forEach(adicionarComentarioNaLista); // Adiciona um por um
     }
 
-    /**
-     * "Desenha" um único comentário na lista.
-     */
     function adicionarComentarioNaLista(comentario) {
-        // Se a mensagem "nenhum comentário" estiver, apaga-a
         const pVazio = commentListContainer.querySelector('p');
         if (pVazio) pVazio.remove();
         
@@ -242,12 +234,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <small>Em: ${dataFormatada}</small>
             </article>
         `;
-        commentListContainer.innerHTML += cardHTML; // Adiciona no fim
+        commentListContainer.innerHTML += cardHTML;
     }
     
-    /**
-     * Mostra ou esconde o formulário de comentário baseado no estado de login.
-     */
     function setupComentariosUI() {
         if (token) {
             commentForm.style.display = 'block';
@@ -258,8 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- 6. PONTO DE ENTRADA ---
     // Chama a função principal para iniciar a página
     init();
     
-}); // Fim do DOMContentLoaded
+});
